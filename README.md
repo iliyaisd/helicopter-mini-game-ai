@@ -24,17 +24,20 @@ Navigate your helicopter through a scrolling city landscape while:
 
 - Smooth parallax scrolling background
 - Dynamic fuel management system
-- Score tracking
+- Score tracking with persistent high scores
 - Lives system (5 lives)
 - Enemy plane spawning system
 - Parachute collection mechanics
 - Safe refueling zone at the helipad
 - Pause functionality
+- Local SQLite database for storing high scores
+- Top 5 high scores display at game over
 
 ## 🛠️ Prerequisites
 
 - Python 3.x
 - Pygame library
+- SQLite3 (included in Python standard library)
 
 ## 📦 Installation
 
@@ -45,7 +48,7 @@ git clone [repository-url]
 
 2. Install the required dependencies:
 ```bash
-pip install pygame
+pip install -r requirements.txt
 ```
 
 3. Ensure you have the following image assets in your game directory:
@@ -72,7 +75,8 @@ python helicopter.py
 
 ## 🤖 AI Generation Note
 
-This game was created as an experiment in AI-assisted game development, with approximately 99% of the code being generated through AI. The project demonstrates the potential of AI in creating functional and entertaining games while requiring minimal human intervention.
+This game was created as an experiment in AI-assisted game development, with approximately 99% of the code being generated through AI. 
+The project demonstrates the potential of AI in creating functional and entertaining games while requiring minimal human intervention.
 
 ## 🎨 Credits
 

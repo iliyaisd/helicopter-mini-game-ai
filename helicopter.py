@@ -1,6 +1,8 @@
 import pygame
 import random
 import time
+import sqlite3
+import os
 
 # Initialize Pygame
 pygame.init()
@@ -18,6 +20,7 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 YELLOW = (255, 255, 0)
 GRAY = (128, 128, 128)
+HIGHLIGHT = (255, 215, 0)  # Gold color for highlighting
 
 # Player settings
 player_size = int(50 * 2)  # Increased size of the helicopter
@@ -74,6 +77,39 @@ parachute_image = pygame.transform.scale(parachute_image, (parachute_size, parac
 # Load helipad image
 helipad_image = pygame.image.load('helipad.png')
 helipad_image = pygame.transform.scale(helipad_image, (HELIPAD_WIDTH, HELIPAD_HEIGHT))
+
+# Database setup
+def init_db():
+    if not os.path.exists('scores.db'):
+        conn = sqlite3.connect('scores.db')
+        c = conn.cursor()
+        c.execute('''CREATE TABLE scores
+                    (name text, score integer)''')
+        conn.commit()
+        conn.close()
+
+def get_top_scores():
+    conn = sqlite3.connect('scores.db')
+    c = conn.cursor()
+    c.execute('SELECT name, score FROM scores ORDER BY score DESC LIMIT 5')
+    scores = c.fetchall()
+    conn.close()
+    return scores
+
+def save_score(name, score):
+    conn = sqlite3.connect('scores.db')
+    c = conn.cursor()
+    c.execute('SELECT COUNT(*) FROM scores WHERE score < ?', (score,))
+    lower_scores = c.execute('SELECT COUNT(*) FROM scores WHERE score < ?', (score,)).fetchone()[0]
+    c.execute('SELECT COUNT(*) FROM scores').fetchone()[0]
+    
+    if lower_scores > 0 or c.execute('SELECT COUNT(*) FROM scores').fetchone()[0] < 5:
+        c.execute('INSERT INTO scores (name, score) VALUES (?, ?)', (name, score))
+        c.execute('DELETE FROM scores WHERE rowid NOT IN (SELECT rowid FROM scores ORDER BY score DESC LIMIT 5)')
+        conn.commit()
+        return True
+    conn.close()
+    return False
 
 # Functions
 def draw_helipad():
@@ -179,6 +215,9 @@ def draw_fuel_gauge(fuel):
     # Draw fuel text
     fuel_text = font.render("FUEL", True, BLACK)
     screen.blit(fuel_text, (SCREEN_WIDTH//2 - FUEL_WIDTH//2 - 80, 5))
+
+# Initialize database
+init_db()
 
 # Game loop
 lives = 5
@@ -301,11 +340,68 @@ overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 overlay.fill((128, 128, 128))
 overlay.set_alpha(128)
 screen.blit(overlay, (0,0))
-# Draw game over text
+
+# Get player name if score is high enough
+top_scores = get_top_scores()
+is_high_score = len(top_scores) < 5 or score > min([s[1] for s in top_scores]) if top_scores else True
+
+if is_high_score:
+    # Create text input for name
+    name = ""
+    input_active = True
+    while input_active:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    input_active = False
+                elif event.key == pygame.K_BACKSPACE:
+                    name = name[:-1]
+                else:
+                    if len(name) < 10:  # Limit name length
+                        name += event.unicode
+        
+        # Clear screen and redraw
+        screen.fill(BLACK)
+        screen.blit(overlay, (0,0))
+        text = font.render("New High Score! Enter your name:", True, WHITE)
+        name_text = font.render(name + "_", True, WHITE)
+        screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, SCREEN_HEIGHT//2 - 50))
+        screen.blit(name_text, (SCREEN_WIDTH//2 - name_text.get_width()//2, SCREEN_HEIGHT//2))
+        pygame.display.update()
+    
+    # Save score
+    if name.strip():
+        save_score(name.strip(), score)
+
+# Clear screen before showing final scores
+screen.fill(BLACK)
+screen.blit(overlay, (0,0))
+
+# Draw game over screen with high scores
 text = font.render("Game Over", True, WHITE)
-text_rect = text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//2))
+text_rect = text.get_rect(center=(SCREEN_WIDTH//2, SCREEN_HEIGHT//4))
 screen.blit(text, text_rect)
+
+# Display high scores
+scores = get_top_scores()
+y_offset = SCREEN_HEIGHT//2 - 100
+title = font.render("High Scores:", True, WHITE)
+screen.blit(title, (SCREEN_WIDTH//2 - title.get_width()//2, y_offset))
+
+y_offset += 50
+for i in range(5):
+    if i < len(scores):
+        score_text = f"{i+1}. {scores[i][0]}: {scores[i][1]}"
+        color = HIGHLIGHT if scores[i][1] == score and scores[i][0] == name else WHITE
+    else:
+        score_text = f"{i+1}. ---"
+        color = WHITE
+    
+    text = font.render(score_text, True, color)
+    screen.blit(text, (SCREEN_WIDTH//2 - text.get_width()//2, y_offset))
+    y_offset += 40
+
 pygame.display.update()
-time.sleep(2)
+time.sleep(5)
 
 pygame.quit()
