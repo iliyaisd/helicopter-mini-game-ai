@@ -81,7 +81,7 @@ The project demonstrates the potential of AI in creating functional and entertai
 ## 🎨 Credits
 
 - Game Engine: Pygame
-- Graphics: Basic placeholder assets
+- Graphics: Basic placeholder assets, created with Midjourney
 - Development: AI-assisted with minimal human modifications
 
 ## 📝 License
