@@ -2,7 +2,7 @@
 
 A simple yet engaging helicopter rescue game where you navigate through a cityscape, avoiding enemy planes while collecting parachutes and managing your fuel levels. This game was created as an experiment and is 99% generated through AI assistance (including the README).
 
-![Game Demo](demo.mp4)
+https://github.com/user-attachments/assets/9b0360ae-1f70-4096-b3ac-e503a3ce1000
 
 ## 🎮 Gameplay
 
